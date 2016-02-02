@@ -28,11 +28,11 @@ class RealtimeRegisterApi
     {
         try {
             $response = $this->_sendRequest("domains/" . urlencode($domain) . "/check", array());
-        } catch(Exception $e) {
+        } catch (Exception $e) {
             return false;
         }
 
-        if(isset($response->response->$domain->avail)) {
+        if (isset($response->response->$domain->avail)) {
             return $response->response->$domain->avail == 1 ? true : false;
         }
 
@@ -42,11 +42,12 @@ class RealtimeRegisterApi
     /**
      * @return string
      */
-    private function _getApiUrl() {
-        if($this->test_mode) {
-            return "https://http.api.yoursrs-ote.com/v1/";
+    private function _getApiUrl($action)
+    {
+        if ($this->test_mode) {
+            return "https://http.api.yoursrs-ote.com/v1/" . $action;
         }
-        return "https://http.api.yoursrs.com/v1/";
+        return "https://http.api.yoursrs.com/v1/" . $action;
     }
 
     /**
@@ -61,7 +62,7 @@ class RealtimeRegisterApi
         $params['login_pass'] = $this->password;
 
         $curl = curl_init();
-        curl_setopt($curl, CURLOPT_URL, $this->_getApiUrl().$action);
+        curl_setopt($curl, CURLOPT_URL, $this->_getApiUrl($action));
         curl_setopt($curl, CURLOPT_FAILONERROR, TRUE);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
         curl_setopt($curl, CURLOPT_POST, TRUE);
@@ -69,12 +70,8 @@ class RealtimeRegisterApi
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, true);
         curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 2);
 
-        if ($this->test_mode) {
-            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 1);
-        }
-
         $result = curl_exec($curl);
+
         /* Could not connect to API, curl returned false */
         if ($result === false) {
             curl_close($curl);
