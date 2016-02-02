@@ -1,0 +1,11 @@
+{
+    "name": "hostinger/realtimeregister-sdk-php",
+    "description": "RealtimeRegister.com API",
+    "require": {
+        "ext-curl": "*",
+        "ext-json": "*"
+    },
+    "autoload": {
+        "files": ["RealtimeRegisterApi.php", "RealtimeRegisterApiException.php"]
+    }
+}
