@@ -8,7 +8,9 @@
   "autoload": {
     "psr-0": {
       "RealtimeRegisterApi": "",
-      "RealtimeRegisterApiException": ""
+      "RealtimeRegisterApiException": "",
+      "ResellerclubRegisterApi": "",
+      "RegistrarInterface": ""
     }
   }
 }
