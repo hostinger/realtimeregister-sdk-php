@@ -1,6 +1,6 @@
 <?php
 
-class RealtimeRegisterApi
+class RealtimeRegisterApi implements RegistrarInterface
 {
     protected $dealer = '';
     protected $password = '';
