@@ -1,6 +1,6 @@
 <?php
 
-class RealtimeRegisterApi implements RegistrarInterface
+class RealtimeRegisterApi extends RegistrarCommon implements RegistrarInterface
 {
     protected $dealer = '';
     protected $password = '';
@@ -40,6 +40,15 @@ class RealtimeRegisterApi implements RegistrarInterface
     }
 
     /**
+     * @param string $domain
+     * @param array $config
+     * @return array
+     */
+    public function getSuggestions($domain, array $config) {
+        return array();
+    }
+
+    /**
      * @return string
      */
     private function _getApiUrl($action)
@@ -54,7 +63,7 @@ class RealtimeRegisterApi implements RegistrarInterface
      * @param string $action
      * @param array $params
      * @return stdClass
-     * @throws RealtimeRegisterApiException
+     * @throws RegistrarApiException
      */
     private function _sendRequest($action, $params = array())
     {
@@ -75,7 +84,7 @@ class RealtimeRegisterApi implements RegistrarInterface
         /* Could not connect to API, curl returned false */
         if ($result === false) {
             curl_close($curl);
-            throw new RealtimeRegisterApiException("Could not connect to RealtimeRegister API.");
+            throw new RegistrarApiException("Could not connect to RealtimeRegister API.");
         }
 
         /* Try to decode the response */
@@ -84,12 +93,12 @@ class RealtimeRegisterApi implements RegistrarInterface
 
         /* Response could not be decoded */
         if (!$response) {
-            throw new RealtimeRegisterApiException("Received invalid response. Please try again.");
+            throw new RegistrarApiException("Received invalid response. Please try again.");
         }
 
         /* An error occurred */
         if ($response->code >= 2000) {
-            throw new RealtimeRegisterApiException($response->msg);
+            throw new RegistrarApiException($response->msg);
         }
 
         return $response;
