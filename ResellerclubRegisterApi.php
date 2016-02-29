@@ -1,6 +1,6 @@
 <?php
 
-class ResellerclubRegisterApi implements RegistrarInterface
+class ResellerclubRegisterApi extends RegistrarCommon implements RegistrarInterface
 {
     protected $auth_userid = '';
     protected $auth_password = '';
@@ -26,18 +26,10 @@ class ResellerclubRegisterApi implements RegistrarInterface
      */
     public function isDomainAvailable($domain)
     {
-        $domainParts = explode('.', $domain);
-        if(count($domainParts) > 3 || count($domainParts) < 2) {
-            return false;
-        }
-
-        $tld = $domainParts[1];
-        if(isset($domainParts[2])) {
-            $tld .= '.'.$domainParts[2];
-        }
+        list($sld, $tld) = $this->parseDomain($domain);
 
         $params = array(
-            'domain-name'           =>  $domainParts[0],
+            'domain-name'           =>  $sld,
             'tlds'                  =>  array($tld),
             'suggest-alternative'   =>  false,
         );
@@ -52,10 +44,11 @@ class ResellerclubRegisterApi implements RegistrarInterface
     }
 
     /**
-     * @param $domain
+     * @param string $domain
+     * @param array $config
      * @param bool $exact_match
      * @return array
-     * @throws RealtimeRegisterApiException
+     * @throws RegistrarApiException
      *
      * @scenarios:
      * When tld-only is not specified, and exact-match is false: Results will include keyword matches and alternatives against all TLDs the reseller is signed up for.
@@ -63,22 +56,14 @@ class ResellerclubRegisterApi implements RegistrarInterface
      * When tld-only is not specified, and exact-match is true: Results will include keyword matches against all TLDs that the reseller is signed up for. No keyword alternatives will be returned.
      * When tld-only is specified, and exact-match is true: Results will include keyword matches against only the TLDs specified. No keyword alternatives will be returned.
      */
-    public function getSuggestions($domain, $tld_only = false, $exact_match = false) {
-        $domainParts = explode('.', $domain);
-        if(count($domainParts) > 3 || count($domainParts) < 2) {
-            return false;
-        }
-
-        $tld = $domainParts[1];
-        if(isset($domainParts[2])) {
-            $tld .= '.'.$domainParts[2];
-        }
+    public function getSuggestions($domain, array $config) {
+        list($sld, $tld) = $this->parseDomain($domain);
 
         $params = array(
-            'keyword' => $domainParts[0], // Allowed characters are a-z, A-Z, 0-9, space and hyphen.
-            'exact-match' =>  $exact_match, // true || false
+            'keyword' => $sld, // Allowed characters are a-z, A-Z, 0-9, space and hyphen.
+            'exact-match' => isset($config['exact_match']) ? $config['exact_match'] : false, // true || false
         );
-        if($tld_only) {
+        if(isset($config['tld_only']) && $config['tld_only']) {
             $params['tld-only'] = '.'.$tld;
         }
 
@@ -131,9 +116,9 @@ class ResellerclubRegisterApi implements RegistrarInterface
                 if(isset($opts[CURLOPT_POSTFIELDS])) {
                     $debug_url .= '?'.$opts[CURLOPT_POSTFIELDS];
                 }
-                $e = new RealtimeRegisterApiException(sprintf('CurlException: "%s" Result: %s Url: %s', curl_error($ch), $result, $debug_url));
+                $e = new RegistrarApiException(sprintf('CurlException: "%s" Result: %s Url: %s', curl_error($ch), $result, $debug_url));
             } else {
-                $e = new RealtimeRegisterApiException(sprintf('CurlException: "%s"', curl_error($ch)));
+                $e = new RegistrarApiException(sprintf('CurlException: "%s"', curl_error($ch)));
             }
             curl_close($ch);
             throw $e;
@@ -147,7 +132,7 @@ class ResellerclubRegisterApi implements RegistrarInterface
      * @param string $type
      * @param bool|false $array
      * @return mixed
-     * @throws RealtimeRegisterApiException
+     * @throws RegistrarApiException
      */
     private function _parseResponse($result, $type = 'json', $array = false)
     {
@@ -157,15 +142,15 @@ class ResellerclubRegisterApi implements RegistrarInterface
         }
 
         if(isset($json->status) && $json->status == 'ERROR') {
-            throw new RealtimeRegisterApiException($json->message);
+            throw new RegistrarApiException($json->message);
         }
 
         if(isset($json->status) && $json->status == 'error') {
-            throw new RealtimeRegisterApiException($json->error);
+            throw new RegistrarApiException($json->error);
         }
 
         if(isset($json->status) && $json->status == 'Failed') {
-            throw new RealtimeRegisterApiException($json->actionstatusdesc);
+            throw new RegistrarApiException($json->actionstatusdesc);
         }
 
         if($array) {
