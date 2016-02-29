@@ -39,6 +39,10 @@ class RealtimeRegisterApi implements RegistrarInterface
         return false;
     }
 
+    public function getSuggestions($domain, $tld_only = false, $exact_match = false) {
+        return array();
+    }
+
     /**
      * @return string
      */

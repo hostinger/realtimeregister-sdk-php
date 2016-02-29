@@ -51,6 +51,48 @@ class ResellerclubRegisterApi implements RegistrarInterface
         return false;
     }
 
+    /**
+     * @param $domain
+     * @param bool $exact_match
+     * @return bool
+     * @throws RealtimeRegisterApiException
+     *
+     * @scenarios:
+     * When tld-only is not specified, and exact-match is false: Results will include keyword matches and alternatives against all TLDs the reseller is signed up for.
+     * When tld-only is specified, and exact-match is false: Results will include keyword matches and alternatives against only the TLDs specified.
+     * When tld-only is not specified, and exact-match is true: Results will include keyword matches against all TLDs that the reseller is signed up for. No keyword alternatives will be returned.
+     * When tld-only is specified, and exact-match is true: Results will include keyword matches against only the TLDs specified. No keyword alternatives will be returned.
+     */
+    public function getSuggestions($domain, $tld_only = false, $exact_match = false) {
+        $domainParts = explode('.', $domain);
+        if(count($domainParts) > 3 || count($domainParts) < 2) {
+            return false;
+        }
+
+        $tld = $domainParts[1];
+        if(isset($domainParts[2])) {
+            $tld .= '.'.$domainParts[2];
+        }
+
+        $params = array(
+            'keyword' => $domainParts[0], // Allowed characters are a-z, A-Z, 0-9, space and hyphen.
+            'exact-match' =>  $exact_match, // true || false
+        );
+        if($tld_only) {
+            $params['tld-only'] = $tld;
+        }
+
+        $result = $this->_makeRequest('domains/v5/suggest-names', $params);
+
+
+        $list = array();
+        foreach($result as $key => $value) {
+            $list[] = $key;
+        }
+
+        return $list;
+    }
+
     private function _getApiUrl()
     {
         if($this->test_mode) {
