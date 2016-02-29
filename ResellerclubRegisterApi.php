@@ -54,7 +54,7 @@ class ResellerclubRegisterApi implements RegistrarInterface
     /**
      * @param $domain
      * @param bool $exact_match
-     * @return bool
+     * @return array
      * @throws RealtimeRegisterApiException
      *
      * @scenarios:
@@ -79,7 +79,7 @@ class ResellerclubRegisterApi implements RegistrarInterface
             'exact-match' =>  $exact_match, // true || false
         );
         if($tld_only) {
-            $params['tld-only'] = $tld;
+            $params['tld-only'] = '.'.$tld;
         }
 
         $result = $this->_makeRequest('domains/v5/suggest-names', $params);
